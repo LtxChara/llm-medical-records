@@ -3,8 +3,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    siliconflow_api_key: str
-    siliconflow_base_url: str = "https://api.siliconflow.cn/v1"
+    api_key: str
+    base_url: str = "https://api.siliconflow.cn/v1"
     llm_model_name: str = "Qwen/Qwen3.5-4B"
     llm_timeout: float = 30.0
     llm_max_retries: int = 2

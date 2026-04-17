@@ -61,13 +61,13 @@ store = SessionStore(ttl_seconds=settings.session_ttl_seconds)
 
 try:
     client = OpenAI(
-        api_key=settings.siliconflow_api_key,
-        base_url=settings.siliconflow_base_url,
+        api_key=settings.api_key,
+        base_url=settings.base_url,
         timeout=settings.llm_timeout,
     )
     logger.info(
         f"OpenAI client initialized for model: {settings.llm_model_name} "
-        f"at {settings.siliconflow_base_url}"
+        f"at {settings.base_url}"
     )
 except Exception as e:
     logger.critical(f"Failed to initialize OpenAI client: {e}")

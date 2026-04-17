@@ -39,7 +39,7 @@
 | ------------------ | ---------------------------------------------------------- | --------------------------------------------------- |
 | **后端**     | Python + FastAPI + Pydantic                                | 提供 RESTful API，负责 LLM 调用、会话管理与文档生成 |
 | **前端**     | Vue 3 (Composition API) + Vite + Element Plus              | 提供响应式双栏交互界面                              |
-| **LLM 服务** | SiliconFlow API                                            | 默认使用 `Qwen/Qwen3.5-4B` 模型                   |
+| **LLM 服务** | LLM Agent API                                              | 默认使用 `Qwen/Qwen3.5-4B` 模型                   |
 | **文档生成** | `python-docx` (Word) / `html2canvas` + `jsPDF` (PDF) | 支持两种导出格式                                    |
 
 ---
@@ -199,14 +199,14 @@ npm run build
 
 复制 `backend/.env.example` 为 `backend/.env`，并根据实际情况填写：
 
-| 变量名                   | 说明                           | 默认值                            |
-| ------------------------ | ------------------------------ | --------------------------------- |
-| `SILICONFLOW_API_KEY`  | **必填**，你的  API Key | `your_api_key_here`             |
-| `SILICONFLOW_BASE_URL` | API 基础地址                   | `https://api.siliconflow.cn/v1` |
-| `LLM_MODEL_NAME`       | 使用的模型名称                 | `Qwen/Qwen3.5-4B`               |
-| `LLM_TIMEOUT`          | LLM 请求超时时间（秒）         | `30.0`                          |
-| `LLM_MAX_RETRIES`      | 请求失败最大重试次数           | `2`                             |
-| `SESSION_TTL_SECONDS`  | 会话缓存过期时间（秒）         | `3600`                          |
+| 变量名                  | 说明                           | 默认值                            |
+| ----------------------- | ------------------------------ | --------------------------------- |
+| `API_KEY`             | **必填**，你的  API Key | `your_api_key_here`             |
+| `BASE_URL`            | API 基础地址                   | `https://api.siliconflow.cn/v1` |
+| `LLM_MODEL_NAME`      | 使用的模型名称                 | `Qwen/Qwen3.5-4B`               |
+| `LLM_TIMEOUT`         | LLM 请求超时时间（秒）         | `30.0`                          |
+| `LLM_MAX_RETRIES`     | 请求失败最大重试次数           | `2`                             |
+| `SESSION_TTL_SECONDS` | 会话缓存过期时间（秒）         | `3600`                          |
 
 > **注意**：`backend/.env` 包含敏感信息，已被 `.gitignore` 排除，请勿将其提交到仓库。
 
