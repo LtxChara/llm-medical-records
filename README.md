@@ -4,11 +4,7 @@
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-brightgreen.svg)](https://vuejs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135-blue.svg)](https://fastapi.tiangolo.com/)
 
-
-
 > 基于大语言模型（LLM）的电子病历智能生成系统。输入患者口语化描述，自动提取结构化病历信息（主诉、现病史、既往史、过敏史、诊断），支持多轮补充问答，并一键导出标准格式病历文档。
-
-
 
 ![病历智能撰写系统前端页面](homepage.png)
 
@@ -89,7 +85,7 @@ LLM-medical-records/
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/<your-username>/LLM-medical-records.git
+git clone https://github.com/LtxChara/LLM-medical-records.git
 cd LLM-medical-records
 ```
 
@@ -111,7 +107,7 @@ pip install -r requirements.txt
 
 # 配置环境变量
 cp backend/.env.example backend/.env
-# 编辑 backend/.env，填入你的 SiliconFlow API Key
+# 编辑 backend/.env，填入你的 API Key
 ```
 
 ### 3. 启动后端服务
@@ -216,19 +212,6 @@ npm run build
 
 ---
 
-## 开发文档
-
-项目内部维护了一份 `CLAUDE.md`，记录了更详细的架构说明、常用命令、前后端数据流与已知注意事项，供后续开发者与协作者参考。
-
----
-
 ## 许可证
 
 本项目基于 [MIT License](LICENSE) 开源，欢迎自由学习、修改与复用。
-
----
-
-## 致谢
-
-- 语言模型服务由 [SiliconFlow](https://siliconflow.cn/) 提供。
-- 前端 UI 组件库基于 [Element Plus](https://element-plus.org/)。

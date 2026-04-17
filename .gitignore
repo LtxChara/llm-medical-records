@@ -122,6 +122,7 @@ backend/server.log
 backend/test_outputs/
 backend/medical_report.docx
 backend/*.docx
+CLAUDE.md
 
 # ------------------------------------------------
 # 8. 其他
