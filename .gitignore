@@ -1,0 +1,131 @@
+# ================================================
+# LLM 病历智能撰写系统 - Git Ignore
+# ================================================
+# 说明：本文件区分了不可上传的临时/敏感文件与可上传的代码模板。
+# 可上传的模板文件：backend/.env.example
+# ================================================
+
+# ------------------------------------------------
+# 1. 环境变量与敏感配置（绝对不可上传）
+# ------------------------------------------------
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ------------------------------------------------
+# 2. Python 后端
+# ------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 虚拟环境
+venv/
+ENV/
+env/
+.venv/
+
+# Pytest / Coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# MyPy / Ruff / Bandit
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# ------------------------------------------------
+# 3. Node.js 前端
+# ------------------------------------------------
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Vite / Vue
+*.tsbuildinfo
+
+# ------------------------------------------------
+# 4. IDE 与编辑器
+# ------------------------------------------------
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ------------------------------------------------
+# 5. 操作系统生成的文件
+# ------------------------------------------------
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# ------------------------------------------------
+# 6. 日志与数据库
+# ------------------------------------------------
+*.log
+backend/server.log
+*.sql
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------
+# 7. 项目特定的生成文件（运行时/测试产出）
+# ------------------------------------------------
+backend/test_outputs/
+backend/medical_report.docx
+backend/*.docx
+
+# ------------------------------------------------
+# 8. 其他
+# ------------------------------------------------
+*.pid
+*.seed
+*.pid.lock

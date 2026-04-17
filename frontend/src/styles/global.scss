@@ -1,0 +1,49 @@
+// 变量定义
+$bg-light-green: #f0f9eb;
+
+// 主色
+$primary-green: #F0F9EB;
+$alert-red: #F56C6C;
+
+// 中性色
+$pure-white: #FFFFFF;
+$text-dark: #333333;
+
+// 扩展色板
+$secondary-blue: #409EFF;  // 操作按钮色
+$success-green: #67C23A;  // 完成状态色
+$warning-orange: #E6A23C; // 提醒色
+
+// 重置样式
+   * {
+       margin: 0;
+       padding: 0;
+       box-sizing: border-box;
+   }
+
+body {
+    font-family: "Microsoft YaHei", sans-serif;
+}
+
+// 卡片通用样式
+   .el-card {
+       margin-bottom: 20px;
+       border-radius: 8px;
+       box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+   }
+
+// 患者信息卡片特殊样式
+   .patient-card {
+       width: 350px;
+       min-width: 350px;
+   }
+
+// AI医生面板样式
+   .ai-doctor-panel {
+       flex: 1;
+       .panel-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+       }
+   }
