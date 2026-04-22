@@ -1,18 +1,27 @@
 import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
 
 class Settings(BaseSettings):
-    api_key: str
-    base_url: str = "https://api.siliconflow.cn/v1"
-    llm_model_name: str = "Qwen/Qwen3.5-4B"
-    llm_timeout: float = 30.0
-    llm_max_retries: int = 2
-    session_ttl_seconds: int = 3600  # 1 hour
+    api_key: str = Field(alias="siliconflow_api_key")
+    base_url: str = Field(
+        default="https://api.siliconflow.cn/v1",
+        alias="siliconflow_base_url"
+    )
+    llm_model_name: str = Field(
+        default="Qwen/Qwen3.5-4B",
+        alias="llm_model_name"
+    )
+    llm_timeout: float = Field(default=30.0, alias="llm_timeout")
+    llm_max_retries: int = Field(default=2, alias="llm_max_retries")
+    session_ttl_seconds: int = Field(default=3600, alias="session_ttl_seconds")
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        populate_by_name=True,
+    )
 
 
 settings = Settings()
