@@ -4,9 +4,10 @@ const BASE_URL = 'http://localhost:5000'
  * 调用后端 /process 接口，启动病历分析
  * @param {string} session_id
  * @param {string} text
+ * @param {AbortSignal} [signal] - 可选的 AbortSignal，用于取消请求
  * @returns {Promise<object>} 后端返回的 JSON 对象
  */
-export async function analyzeText(session_id, text) {
+export async function analyzeText(session_id, text, signal) {
   const response = await fetch(`${BASE_URL}/process`, {
     method: 'POST',
     mode: 'cors',
@@ -14,7 +15,8 @@ export async function analyzeText(session_id, text) {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify({ session_id, text })
+    body: JSON.stringify({ session_id, text }),
+    signal
   })
 
   if (!response.ok) {
@@ -30,9 +32,10 @@ export async function analyzeText(session_id, text) {
  * @param {string} session_id
  * @param {string} field
  * @param {string} text
+ * @param {AbortSignal} [signal] - 可选的 AbortSignal，用于取消请求
  * @returns {Promise<object>} 后端返回的 JSON 对象
  */
-export async function supplementText(session_id, field, text) {
+export async function supplementText(session_id, field, text, signal) {
   const response = await fetch(`${BASE_URL}/supplement`, {
     method: 'POST',
     mode: 'cors',
@@ -40,7 +43,8 @@ export async function supplementText(session_id, field, text) {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify({ session_id, field, text })
+    body: JSON.stringify({ session_id, field, text }),
+    signal
   })
 
   if (!response.ok) {
@@ -54,9 +58,10 @@ export async function supplementText(session_id, field, text) {
 /**
  * 调用后端 /generate_doc 接口，生成并下载 Word 文档
  * @param {object} input - 符合 GenerateDocRequestInput 格式的对象
+ * @param {AbortSignal} [signal] - 可选的 AbortSignal，用于取消请求
  * @returns {Promise<void>}
  */
-export async function generateDoc(input) {
+export async function generateDoc(input, signal) {
   const response = await fetch(`${BASE_URL}/generate_doc`, {
     method: 'POST',
     mode: 'cors',
@@ -64,7 +69,8 @@ export async function generateDoc(input) {
       'Content-Type': 'application/json',
       'Accept': 'application/octet-stream'
     },
-    body: JSON.stringify({ input })
+    body: JSON.stringify({ input }),
+    signal
   })
 
   if (!response.ok) {

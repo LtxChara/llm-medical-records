@@ -12,32 +12,37 @@
     </div>
 
     <!-- 患者基本信息 -->
-    <el-descriptions :column="2" border class="patient-info">
-      <el-descriptions-item label="姓名">
-        {{ patientInfo.name }}
-      </el-descriptions-item>
-      <el-descriptions-item label="性别">
-        {{ patientInfo.gender }}
-      </el-descriptions-item>
-      <el-descriptions-item label="年龄">
-        {{ patientInfo.age }}
-      </el-descriptions-item>
-      <el-descriptions-item label="科室">
-        {{ patientInfo.department }}
-      </el-descriptions-item>
-      <el-descriptions-item label="病历号">
-        {{ patientInfo.recordNumber }}
-      </el-descriptions-item>
-      <el-descriptions-item label="就诊时间">
-        {{ patientInfo.visitTime }}
-      </el-descriptions-item>
-      <el-descriptions-item label="联系电话">
-        {{ patientInfo.phone }}
-      </el-descriptions-item>
-      <el-descriptions-item label="家庭住址">
-        {{ patientInfo.address }}
-      </el-descriptions-item>
-    </el-descriptions>
+    <el-form :model="patientInfo" label-width="80px" class="patient-info-form">
+      <div class="patient-info-grid">
+        <el-form-item label="姓名">
+          <el-input v-model="patientInfo.name" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-select v-model="patientInfo.gender" placeholder="请选择" style="width: 100%">
+            <el-option label="男" value="男" />
+            <el-option label="女" value="女" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="年龄">
+          <el-input v-model="patientInfo.age" placeholder="请输入年龄" />
+        </el-form-item>
+        <el-form-item label="科室">
+          <el-input v-model="patientInfo.department" disabled />
+        </el-form-item>
+        <el-form-item label="病历号">
+          <el-input v-model="patientInfo.recordNumber" placeholder="请输入病历号" />
+        </el-form-item>
+        <el-form-item label="就诊时间">
+          <el-input v-model="patientInfo.visitTime" disabled />
+        </el-form-item>
+        <el-form-item label="联系电话">
+          <el-input v-model="patientInfo.phone" placeholder="请输入联系电话" />
+        </el-form-item>
+        <el-form-item label="家庭住址">
+          <el-input v-model="patientInfo.address" placeholder="请输入家庭住址" />
+        </el-form-item>
+      </div>
+    </el-form>
 
     <!-- 可滚动医疗内容区域 -->
     <div class="scroll-container">
@@ -83,22 +88,32 @@
 <script setup>
 import { ref } from 'vue'
 
+// 统一日期格式化：YYYY-MM-DD HH:mm
+const formatDateTime = (date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${d} ${h}:${min}`
+}
+
 // 签名信息
 const signature = ref({
-  name: '贾连荣',
+  name: '',
   handwritten: ''
 })
 
-// 患者信息
+// 患者信息（默认值清空，避免隐私泄露与误导）
 const patientInfo = ref({
-  name: '蔡志军',
-  gender: '男',
-  age: 45,
-  department: '中医内科',
-  recordNumber: 'MZ07882405098',
-  visitTime: new Date().toLocaleString(),
-  phone: '13920631008',
-  address: '上海市宝山区上大路99号'
+  name: '',
+  gender: '',
+  age: '',
+  department: '康复科',
+  recordNumber: '',
+  visitTime: formatDateTime(new Date()),
+  phone: '',
+  address: ''
 })
 
 // 生成状态控制
@@ -151,8 +166,43 @@ const handleGenerate = (data) => {
   }
 }
 
-// 获取当前完整数据，供后端文档生成使用
+// 基础表单校验
+const validateForm = () => {
+  const errors = []
+  if (!patientInfo.value.name || !patientInfo.value.name.trim()) {
+    errors.push('患者姓名不能为空')
+  }
+  if (patientInfo.value.age !== '' && patientInfo.value.age !== null) {
+    const ageNum = Number(patientInfo.value.age)
+    if (isNaN(ageNum) || ageNum < 0 || ageNum > 150) {
+      errors.push('患者年龄必须为 0-150 之间的有效数字')
+    }
+  }
+  if (patientInfo.value.phone && patientInfo.value.phone.trim()) {
+    const phoneRegex = /^1[3-9]\d{9}$/
+    if (!phoneRegex.test(patientInfo.value.phone.trim())) {
+      errors.push('联系电话格式不正确')
+    }
+  }
+  return errors
+}
+
+// 获取当前完整数据，供后端文档生成使用（带校验）
 const getCurrentData = () => {
+  const validationErrors = validateForm()
+  if (validationErrors.length > 0) {
+    throw new Error(validationErrors.join('；'))
+  }
+  return _buildData()
+}
+
+// 获取原始数据，不做表单校验，用于本地保存和前端打印
+const getRawData = () => {
+  return _buildData()
+}
+
+// 内部数据组装逻辑
+const _buildData = () => {
   const medicalContent = {}
   medicalData.value.forEach(item => {
     medicalContent[item.title] = item.content || ''
@@ -185,15 +235,15 @@ const resetFormData = () => {
     gender: '',
     age: '',
     department: '康复科',
-    recordNumber: 'MZ07882405098',
-    visitTime: new Date().toLocaleString(),
+    recordNumber: '',
+    visitTime: formatDateTime(new Date()),
     phone: '',
     address: ''
   }
 
   medicalData.value.forEach(item => item.content = '')
   signature.value = {
-    name: '贾连荣',
+    name: '',
     handwritten: ''
   }
 }
@@ -201,7 +251,8 @@ const resetFormData = () => {
 defineExpose({
   handleGenerate,
   resetFormData,
-  getCurrentData
+  getCurrentData,
+  getRawData
 })
 </script>
 
@@ -228,10 +279,25 @@ defineExpose({
     }
   }
 
-  .patient-info {
+  .patient-info-form {
     margin-bottom: 20px;
-    :deep(.el-descriptions__body) {
-      background: #f8f8f8;
+    padding: 15px;
+    background: #f8f8f8;
+    border-radius: 4px;
+
+    .patient-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
+    }
+
+    :deep(.el-form-item) {
+      margin-bottom: 10px;
+    }
+
+    :deep(.el-form-item__label) {
+      font-weight: bold;
+      color: #606266;
     }
   }
 

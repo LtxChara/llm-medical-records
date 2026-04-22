@@ -27,10 +27,8 @@
 
 <script setup>
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ref } from 'vue'
 
-// 病历数据
-const emit = defineEmits(['newRecord'])
+const emit = defineEmits(['newRecord', 'saveRecord', 'printRecord', 'exportPdf', 'focusSignature'])
 
 const handleSelect = async (key) => {
   switch(key) {
@@ -58,8 +56,8 @@ const handleSelect = async (key) => {
     case '1-2':
       // 保存病历
       try {
-        // 这里可以添加保存到数据库的逻辑
-        ElMessage.success('病历保存成功')
+        emit('saveRecord')
+        ElMessage.success('病历已保存到本地')
       } catch (error) {
         ElMessage.error('保存失败：' + error.message)
       }
@@ -68,8 +66,7 @@ const handleSelect = async (key) => {
     case '1-3':
       // 导出PDF
       try {
-        // 这里可以添加导出PDF的逻辑
-        ElMessage.success('PDF导出成功')
+        emit('exportPdf')
       } catch (error) {
         ElMessage.error('导出失败：' + error.message)
       }
@@ -77,12 +74,12 @@ const handleSelect = async (key) => {
 
     case '2-1':
       // 常用模板
-      ElMessage.info('打开常用模板列表')
+      ElMessage.info('常用模板功能开发中')
       break
 
     case '2-2':
       // 自定义模板
-      ElMessage.info('打开自定义模板管理')
+      ElMessage.info('自定义模板功能开发中')
       break
 
     case '3':
@@ -98,8 +95,7 @@ const handleSelect = async (key) => {
           }
         )
         if (confirm === 'confirm') {
-          // 这里可以添加打印逻辑
-          ElMessage.success('打印任务已发送')
+          emit('printRecord')
         }
       } catch (error) {
         // 用户取消操作
@@ -108,23 +104,8 @@ const handleSelect = async (key) => {
 
     case '4':
       // 签名
-      try {
-        const confirm = await ElMessageBox.confirm(
-          '是否确认进行电子签名？',
-          '签名确认',
-          {
-            confirmButtonText: '确认',
-            cancelButtonText: '取消',
-            type: 'info'
-          }
-        )
-        if (confirm === 'confirm') {
-          // 这里可以添加签名逻辑
-          ElMessage.success('签名成功')
-        }
-      } catch (error) {
-        // 用户取消操作
-      }
+      emit('focusSignature')
+      ElMessage.info('已聚焦到医师签字区域')
       break
   }
 }

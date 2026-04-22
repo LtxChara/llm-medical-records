@@ -21,7 +21,14 @@
     </div>
 
     <div class="model-select">
-      <el-select v-model="selectedModel" placeholder="请选择模型" size="small" style="width: 200px">
+      <el-select
+          v-model="selectedModel"
+          placeholder="请选择模型"
+          size="small"
+          style="width: 220px"
+          disabled
+          title="当前仅支持后端配置的默认模型"
+      >
         <el-option
             v-for="item in models"
             :key="item.value"
@@ -36,8 +43,9 @@
           v-for="btn in medicalButtons"
           :key="btn"
           class="medical-btn"
-          :disabled="true"
-          :title="'请点击下方的“开始分析”按钮生成完整病历'"
+          :disabled="isGenerating"
+          :type="medicalRecord.medicalContent[getEnglishKey(btn)] ? 'success' : 'info'"
+          @click="reanalyzeField(btn)"
           plain
       >
         {{ btn }}
@@ -101,9 +109,9 @@ import { ElCard, ElSelect, ElOption, ElButton, ElInput, ElMessage, ElTag, ElMess
 import PrintTemplate from './PrintTemplate.vue'
 import { analyzeText, supplementText, generateDoc } from '../api/medical.js'
 
-const selectedModel = ref('deepseek')
+const selectedModel = ref('deepseek-r1-distill-qwen-7b')
 const models = ref([
-  { value: 'deepseek', label: 'DeepSeek模型' },
+  { value: 'deepseek-r1-distill-qwen-7b', label: 'DeepSeek-R1-Distill-Qwen-7B' },
 ])
 const inputText = ref('')
 const isGenerating = ref(false)
@@ -168,8 +176,8 @@ const startGenerating = async () => {
 
     console.log('发送请求数据:', { session_id: sessionId.value, text: inputText.value })
 
-    // 调用分析API
-    const result = await analyzeText(sessionId.value, inputText.value)
+    // 调用分析API，传入 AbortSignal 支持取消
+    const result = await analyzeText(sessionId.value, inputText.value, abortController.value.signal)
     console.log('响应数据:', result)
 
     // 处理响应
@@ -256,7 +264,7 @@ const handleSupplementLoop = async (field, message) => {
   emit('generate', { type: 'all', section: field, content: '等待补充...', status: 'partial' })
 
   try {
-    const result = await supplementText(sessionId.value, field, userInput.trim())
+    const result = await supplementText(sessionId.value, field, userInput.trim(), abortController.value.signal)
     console.log('补充响应数据:', result)
 
     if (result.status === 'success') {
@@ -317,32 +325,46 @@ const stopGenerating = () => {
 
 // 打印病历：优先调用后端生成 Word，失败时 fallback 到前端 PDF
 const printMedicalRecord = async () => {
+  let currentData = null
   try {
     isPrinting.value = true
 
-    // 从 PatientInfo 获取当前数据
-    const currentData = props.patientInfoRef?.getCurrentData?.()
+    // 从 PatientInfo 获取当前数据（允许空值，fallback 使用原始数据）
+    try {
+      currentData = props.patientInfoRef?.getCurrentData?.()
+    } catch (validateErr) {
+      ElMessage.warning('患者基本信息不完整，将使用默认值生成文档：' + validateErr.message)
+      currentData = props.patientInfoRef?.getRawData?.()
+    }
     if (!currentData) {
       throw new Error('无法获取当前病历数据')
     }
 
-    // 优先调用后端生成 Word 文档
-    await generateDoc(currentData)
+    // 优先调用后端生成 Word 文档，传入 AbortSignal 支持取消
+    const docController = new AbortController()
+    await generateDoc(currentData, docController.signal)
     ElMessage.success('Word 文档已开始下载')
   } catch (error) {
+    if (error.name === 'AbortError') {
+      ElMessage.info('文档生成已取消')
+      return
+    }
     console.error('后端文档生成失败，尝试前端 PDF:', error)
     ElMessage.warning('后端 Word 生成失败，正在尝试前端 PDF...')
 
     // Fallback: 前端 PDF 生成
     try {
+      const now = new Date()
+      const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`
+      const patientName = currentData?.patient_info?.name || '未知患者'
       const printData = {
         patientInfo: {
-          name: currentData?.patient_info?.name || '',
+          name: patientName,
           gender: currentData?.patient_info?.gender || '',
           age: String(currentData?.patient_info?.age || ''),
-          department: currentData?.visit_info?.department || '',
-          recordNumber: '',
-          visitTime: currentData?.visit_info?.visit_date || new Date().toLocaleDateString(),
+          department: currentData?.visit_info?.department || '康复科',
+          recordNumber: currentData?.patient_info?.recordNumber || '',
+          visitTime: currentData?.visit_info?.visit_date || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
           phone: currentData?.patient_info?.phone || '',
           address: currentData?.patient_info?.address || ''
         },
@@ -350,13 +372,15 @@ const printMedicalRecord = async () => {
           { title: '主诉', content: currentData?.medical_content?.['主诉'] },
           { title: '现病史', content: currentData?.medical_content?.['现病史'] },
           { title: '既往史', content: currentData?.medical_content?.['既往史'] },
+          { title: '过敏史', content: currentData?.medical_content?.['过敏史'] },
           { title: '诊断', content: currentData?.medical_content?.['诊断'] }
         ].filter(item => item.content),
         signature: {
-          name: currentData?.visit_info?.doctor || '贾连荣',
-          handwritten: currentData?.visit_info?.doctor || '贾连荣',
-          date: new Date().toLocaleDateString()
-        }
+          name: currentData?.visit_info?.doctor || '',
+          handwritten: currentData?.visit_info?.doctor || '',
+          date: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+        },
+        pdfFilename: `${patientName}_康复科病历_${dateStr}.pdf`
       }
 
       const container = document.createElement('div')
@@ -367,7 +391,7 @@ const printMedicalRecord = async () => {
       const printApp = createApp(PrintTemplate, printData)
       const vm = printApp.mount(container)
 
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 200))
 
       if (typeof vm.generatePDF !== 'function') {
         throw new Error('打印组件初始化失败')
@@ -461,6 +485,87 @@ const generateNewSessionId = async () => {
   }
 }
 
+// 中文字段名到英文 key 的映射
+const getEnglishKey = (chineseKey) => {
+  const map = {
+    '主诉': 'chiefComplaint',
+    '现病史': 'currentIllness',
+    '既往史': 'pastHistory',
+    '过敏史': 'allergyHistory',
+    '诊断': 'diagnosis'
+  }
+  return map[chineseKey] || ''
+}
+
+// 单字段重新提取：用户点击医疗字段按钮时触发
+const reanalyzeField = async (field) => {
+  if (isGenerating.value) {
+    ElMessage.warning('当前正在生成中，请稍后再试')
+    return
+  }
+  if (!inputText.value.trim()) {
+    ElMessage.warning('请先在输入框中填写患者描述，然后点击开始分析')
+    return
+  }
+
+  try {
+    const result = await ElMessageBox.prompt(
+      `请补充或修改【${field}】的相关信息，系统将重新提取该字段：`,
+      `重新提取【${field}】`,
+      {
+        confirmButtonText: '提交并重新提取',
+        cancelButtonText: '取消',
+        inputPlaceholder: `请输入关于${field}的补充或修正信息...`,
+        type: 'info'
+      }
+    )
+    const supplement = result.value
+    if (!supplement || !supplement.trim()) {
+      ElMessage.warning('输入内容不能为空')
+      return
+    }
+
+    isGenerating.value = true
+    showStop.value = true
+    abortController.value = new AbortController()
+
+    emit('generate', { type: 'all', section: field, content: '重新提取中...', status: 'partial' })
+
+    const res = await supplementText(sessionId.value, field, supplement.trim(), abortController.value.signal)
+
+    if (res.status === 'success') {
+      const medicalData = res.result || {}
+      const englishKey = getEnglishKey(field)
+      if (englishKey && medicalData[field] !== undefined) {
+        medicalRecord.medicalContent[englishKey] = medicalData[field]
+        emit('generate', {
+          type: 'all',
+          section: field,
+          content: medicalData[field],
+          status: 'partial'
+        })
+      }
+      ElMessage.success(`【${field}】已更新`)
+    } else if (res.status === 'incomplete') {
+      // 重新提取后仍然需要补充，递归处理
+      await handleSupplementLoop(res.field, res.message)
+    } else if (res.status === 'error') {
+      throw new Error(res.message || '重新提取过程中发生错误')
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      ElMessage.info('已取消重新提取')
+    } else {
+      console.error('重新提取失败:', error)
+      ElMessage.error(`重新提取失败: ${error.message}`)
+    }
+  } finally {
+    isGenerating.value = false
+    showStop.value = false
+    abortController.value = null
+  }
+}
+
 // 页面加载时初始化
 onMounted(() => {
   // 不再使用sessionStorage存储ID
@@ -470,7 +575,9 @@ onMounted(() => {
 
 defineExpose({
   generateNewSessionId,
-  resetFormData
+  resetFormData,
+  reanalyzeField,
+  printMedicalRecord
 })
 
 </script>

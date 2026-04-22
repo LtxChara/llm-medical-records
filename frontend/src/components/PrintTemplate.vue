@@ -82,6 +82,10 @@ const props = defineProps({
       handwritten: '',
       date: new Date().toLocaleDateString()
     })
+  },
+  pdfFilename: {
+    type: String,
+    default: ''
   }
 })
 
@@ -94,8 +98,7 @@ const generatePDF = async () => {
       return false
     }
 
-    // 等待DOM更新
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 200))
 
     const element = printRef.value
     const canvas = await html2canvas(element, {
@@ -112,7 +115,11 @@ const generatePDF = async () => {
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width
 
     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
-    pdf.save('蔡志军——康复科病历.pdf')
+
+    // 使用动态文件名，若未提供则使用默认命名
+    const defaultName = `康复科病历_${new Date().toISOString().split('T')[0]}.pdf`
+    const filename = props.pdfFilename || defaultName
+    pdf.save(filename)
 
     return true
   } catch (error) {
@@ -121,7 +128,6 @@ const generatePDF = async () => {
   }
 }
 
-// 确保明确导出 generatePDF 方法
 defineExpose({
   generatePDF
 })
@@ -210,4 +216,4 @@ defineExpose({
 .date {
   margin-top: 10px;
 }
-</style> 
+</style>
