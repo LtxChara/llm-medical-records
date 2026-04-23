@@ -289,7 +289,7 @@ python test_generate_doc.py
 
 ## 许可证
 
-本项目基于 [MIT License](LICENSE) 开源，你可以自由学习、修改和分发。
+本项目基于 [MIT License](LICENSE) 开源，你可以自由使用、修改和分发本项目的代码，但请在衍生作品中保留原始许可证声明。本项目仅供学术研究、教学与个人学习使用，**不作为医疗器械或临床诊断依据**。
 
 ```
 MIT License
